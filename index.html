@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101114">
+  <meta name="description" content="Understand your social connections privately. Analyze your Instagram followers and following directly in your browser.">
+  <title>Social Trace — Understand your social connections</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="Social Trace home"><span class="brand-mark">st</span><span>social trace<span class="brand-period">.</span></span></a>
+    <a class="header-link" href="#privacy">Privacy first <span aria-hidden="true">↗</span></a>
+  </header>
+
+  <main id="top">
+    <section class="hero wrap">
+      <div class="eyebrow"><span class="eyebrow-dot"></span> YOUR SOCIAL DATA, MADE CLEAR</div>
+      <h1>See your social<br><span class="muted-heading">connections clearly.</span></h1>
+      <p class="hero-copy">A little clarity for your digital life. Start with Instagram followers and following — privately, right in your browser.</p>
+      <a class="text-link" href="#instagram-tool">Explore the Instagram tool <span aria-hidden="true">↓</span></a>
+      <div class="hero-art" aria-hidden="true">
+        <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+        <div class="orbit-center"><span>st</span></div>
+        <div class="orbit-node node-a">@</div><div class="orbit-node node-b">↗</div><div class="orbit-node node-c">✳</div><div class="orbit-node node-d">+</div>
+        <div class="art-label label-a">YOUR DATA</div><div class="art-label label-b">YOUR CONTROL</div>
+      </div>
+    </section>
+
+    <section class="tools-section wrap" id="instagram-tool">
+      <div class="section-heading"><div><div class="eyebrow">THE TOOLKIT</div><h2>Small tools. More clarity.</h2></div><span class="section-count">01 / 04</span></div>
+      <article class="tool-card active-tool">
+        <div class="tool-topline"><span class="tool-icon instagram-icon" aria-hidden="true">◎</span><span class="status-pill available"><span></span> AVAILABLE NOW</span></div>
+        <div class="tool-title-row"><div><h3>Instagram connection check</h3><p>Find mutuals, spot accounts that don't follow you back, and explore your lists.</p></div><span class="tool-number">01</span></div>
+        <div class="tool-tags"><span>Followers & following</span><span>CSV export</span><span>Runs locally</span></div>
+        <div class="upload-grid">
+          <div class="upload-panel"><div class="upload-panel-head"><span class="file-icon">↓</span><div><h4>Followers files</h4><p>One or more HTML files</p></div></div><label class="file-drop" for="followersFiles"><span class="drop-symbol">＋</span><span class="drop-title">Choose follower files</span><span class="drop-subtitle">Instagram export · HTML</span><input id="followersFiles" type="file" accept=".html,.htm,text/html" multiple></label><div class="file-summary" id="followersSummary">No files selected</div></div>
+          <div class="upload-panel"><div class="upload-panel-head"><span class="file-icon">↓</span><div><h4>Following files</h4><p>One or more HTML files</p></div></div><label class="file-drop" for="followingFiles"><span class="drop-symbol">＋</span><span class="drop-title">Choose following files</span><span class="drop-subtitle">Instagram export · HTML</span><input id="followingFiles" type="file" accept=".html,.htm,text/html" multiple></label><div class="file-summary" id="followingSummary">No files selected</div></div>
+        </div>
+        <div class="privacy-note"><span class="privacy-shield" aria-hidden="true">◇</span><span><strong>Your files stay on your device.</strong> Social Trace reads them in this browser and never uploads them to a server.</span></div>
+        <div class="action-row"><button class="button button-primary" id="analyzeBtn" type="button">Analyze my data <span aria-hidden="true">→</span></button><button class="button button-quiet" id="clearBtn" type="button">Clear data</button><span class="action-hint">Nothing happens until you click Analyze.</span></div>
+        <div id="noticeArea" class="notice-area" aria-live="polite"></div>
+      </article>
+
+      <section id="resultsSection" class="results-section" hidden>
+        <div class="results-heading"><div><div class="eyebrow">YOUR RESULTS</div><h2>Your connection overview</h2><p id="resultsSubtitle">Compared from the files you selected.</p></div><button class="button button-outline" id="exportAllBtn" type="button">Export all CSVs <span aria-hidden="true">↓</span></button></div>
+        <div class="stats-grid" id="statsGrid"></div>
+        <div class="results-card">
+          <div class="results-tabs" role="tablist" aria-label="Connection results">
+            <button class="result-tab active" id="tab-not-following-back" data-tab="notFollowingBack" role="tab" aria-selected="true" type="button">They don't follow you back <span class="tab-count" id="count-notFollowingBack">0</span></button>
+            <button class="result-tab" id="tab-not-followed-back" data-tab="notFollowedBack" role="tab" aria-selected="false" type="button">You don't follow them back <span class="tab-count" id="count-notFollowedBack">0</span></button>
+            <button class="result-tab" id="tab-mutuals" data-tab="mutuals" role="tab" aria-selected="false" type="button">Both follow each other <span class="tab-count" id="count-mutuals">0</span></button>
+          </div>
+          <div class="list-toolbar"><label class="search-box"><span aria-hidden="true">⌕</span><input id="searchInput" type="search" placeholder="Search usernames…" autocomplete="off"><kbd> / </kbd></label><div class="list-toolbar-right"><span id="visibleCount">0 accounts</span><button class="button button-small button-outline" id="exportTabBtn" type="button">Export this list ↓</button></div></div>
+          <div id="accountList" class="account-list"></div>
+          <div id="emptyState" class="empty-state" hidden><span class="empty-symbol">⌕</span><h3>No accounts found</h3><p>Try another search or switch to a different results tab.</p></div>
+        </div>
+        <p class="results-footnote">Results are held temporarily in this page's memory. Refreshing or closing the page clears them.</p>
+      </section>
+
+      <div class="coming-heading"><div><div class="eyebrow">MORE TO COME</div><h2>One small step at a time.</h2></div><p>More ways to make sense of your data, when they're ready.</p></div>
+      <div class="coming-grid">
+        <article class="coming-card"><span class="coming-icon">◎</span><div><span class="coming-status">COMING SOON</span><h3>Social media toolkit</h3><p>Useful little tools for other platforms.</p></div><span class="coming-arrow">↗</span></article>
+        <article class="coming-card"><span class="coming-icon">⌁</span><div><span class="coming-status">COMING SOON</span><h3>Data, made understandable</h3><p>Turn your own exports into clearer insights.</p></div><span class="coming-arrow">↗</span></article>
+        <article class="coming-card"><span class="coming-icon">＋</span><div><span class="coming-status">COMING SOON</span><h3>Your next useful tool</h3><p>Focused utilities, without the clutter.</p></div><span class="coming-arrow">↗</span></article>
+      </div>
+    </section>
+
+    <section class="privacy-section" id="privacy"><div class="wrap privacy-inner"><div class="privacy-badge">◇</div><div><div class="eyebrow">BUILT AROUND YOUR PRIVACY</div><h2>Your data belongs to you.<br><span class="muted-heading">Full stop.</span></h2><p>Social Trace doesn't ask for your Instagram password or connect to your account. You choose the export files, your browser processes them, and nothing is sent to us. No account. No database. No analytics.</p></div><div class="privacy-points"><div><span>01</span><strong>No login required</strong></div><div><span>02</span><strong>Local browser processing</strong></div><div><span>03</span><strong>Clear it whenever you want</strong></div></div></div></section>
+  </main>
+  <footer class="site-footer wrap"><a class="brand" href="#top"><span class="brand-mark">st</span><span>social trace<span class="brand-period">.</span></span></a><span>Made to put you in control of your data.</span><a href="#privacy">Privacy first ↑</a></footer>
+</body>
+</html>
