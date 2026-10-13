@@ -39,11 +39,20 @@
     const files = kind === 'followers' ? followerInput.files : followingInput.files;
     const summary = $(`#${kind}Summary`);
     if (!files || files.length === 0) {
-      summary.textContent = 'No files selected';
+      summary.classList.remove('has-files');
+      summary.innerHTML = '<span class="summary-empty-dot"></span> No files selected yet';
       return;
     }
     const total = Array.from(files).reduce((sum, file) => sum + file.size, 0);
-    summary.textContent = `${files.length} file${files.length === 1 ? '' : 's'} selected · ${formatBytes(total)}`;
+    summary.classList.add('has-files');
+    const names = Array.from(files).map((file) => file.name);
+    summary.replaceChildren();
+    const badge = document.createElement('span'); badge.className = 'summary-check'; badge.textContent = '✓';
+    const detail = document.createElement('span'); detail.className = 'summary-detail';
+    const strong = document.createElement('strong'); strong.textContent = `${files.length} file${files.length === 1 ? '' : 's'} ready`;
+    const size = document.createElement('span'); size.textContent = formatBytes(total);
+    const namesEl = document.createElement('span'); namesEl.className = 'summary-filenames'; namesEl.textContent = names.join(', ');
+    detail.append(strong, size, namesEl); summary.append(badge, detail);
   }
 
   function formatBytes(bytes) {
@@ -218,11 +227,10 @@
       const main = document.createElement('div'); main.className = 'account-main';
       const avatar = document.createElement('div'); avatar.className = 'avatar'; avatar.textContent = username.slice(0, 2).toUpperCase(); avatar.setAttribute('aria-hidden', 'true');
       const details = document.createElement('div');
-      const name = document.createElement('div'); name.className = 'account-name'; name.textContent = `@${username}`;
+      const profile = document.createElement('a'); profile.className = 'account-name account-profile-link'; profile.textContent = `@${username}`; profile.href = `https://www.instagram.com/${encodeURIComponent(username)}/`; profile.target = '_blank'; profile.rel = 'noopener noreferrer'; profile.setAttribute('aria-label', `Open Instagram profile for ${username} in a new tab`);
       const meta = document.createElement('div'); meta.className = 'account-meta'; meta.textContent = state.activeTab === 'mutuals' ? 'Mutual connection' : state.activeTab === 'notFollowingBack' ? 'You follow them' : 'They follow you';
-      details.append(name, meta); main.append(avatar, details);
-      const link = document.createElement('a'); link.className = 'account-open'; link.href = `https://www.instagram.com/${encodeURIComponent(username)}/`; link.target = '_blank'; link.rel = 'noopener noreferrer'; link.textContent = 'View profile ↗';
-      row.append(main, link); accountList.append(row);
+      details.append(profile, meta); main.append(avatar, details);
+      row.append(main); accountList.append(row);
     });
     $('#visibleCount').textContent = `${filtered.length.toLocaleString()} account${filtered.length === 1 ? '' : 's'}`;
     emptyState.hidden = filtered.length !== 0;
@@ -242,24 +250,31 @@
   }
 
   function csvEscape(value) { return `"${String(value).replace(/"/g, '""')}"`; }
-  function downloadCsv(filename, rows) {
-    const csv = ['username,profile_url,relationship', ...rows.map((row) => [row.username, `https://www.instagram.com/${row.username}/`, row.relationship].map(csvEscape).join(','))].join('\r\n');
-    const blob = new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8;' });
+  function downloadBlob(filename, blob) {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a'); anchor.href = url; anchor.download = filename; document.body.append(anchor); anchor.click(); anchor.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
-
+  function downloadCsv(filename, usernames) {
+    // CSV has no concept of bold formatting or multiple worksheets.
+    const rows = ['username,profile_url', ...usernames.map((username) => [username, `https://www.instagram.com/${username}/`].map(csvEscape).join(','))];
+    downloadBlob(filename, new Blob(['\uFEFF', rows.join('\r\n')], { type: 'text/csv;charset=utf-8;' }));
+  }
   function exportActiveTab() {
     const key = state.activeTab;
-    const rows = state.lists[key].map((username) => ({ username, relationship: TAB_LABELS[key] }));
-    downloadCsv(`social-trace-${key}.csv`, rows);
+    downloadCsv(`social-trace-${key}.csv`, state.lists[key]);
   }
-
+  function xmlEscape(value) {
+    return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+  }
+  function spreadsheetSheet(name, usernames) {
+    const rows = [['Username', 'Instagram profile'], ...usernames.map((username) => [username, `https://www.instagram.com/${username}/`])];
+    return `<Worksheet ss:Name="${xmlEscape(name)}"><Table>${rows.map((row, index) => `<Row>${row.map((value) => `<Cell${index === 0 ? ' ss:StyleID="Header"' : ''}><Data ss:Type="String">${xmlEscape(value)}</Data></Cell>`).join('')}</Row>`).join('')}</Table><WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel"><FreezePanes/><FrozenNoSplit/><SplitHorizontal>1</SplitHorizontal><TopRowBottomPane>1</TopRowBottomPane><ActivePane>2</ActivePane></WorksheetOptions></Worksheet>`;
+  }
   function exportAll() {
-    const rows = [];
-    Object.entries(state.lists).forEach(([key, usernames]) => usernames.forEach((username) => rows.push({ username, relationship: TAB_LABELS[key] })));
-    downloadCsv('social-trace-all-results.csv', rows);
+    // Excel 2003 XML workbook: real worksheets, bold header style, no external libraries.
+    const workbook = `<?xml version="1.0" encoding="UTF-8"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:html="http://www.w3.org/TR/REC-html40"><Styles><Style ss:ID="Default" ss:Name="Normal"><Alignment ss:Vertical="Bottom"/><Font ss:FontName="Arial" ss:Size="10"/></Style><Style ss:ID="Header"><Font ss:Bold="1" ss:FontName="Arial" ss:Size="10"/><Interior ss:Color="#EAF4D9" ss:Pattern="Solid"/><Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#9FC854"/></Borders></Style></Styles>${spreadsheetSheet('They don’t follow back', state.lists.notFollowingBack)}${spreadsheetSheet('You don’t follow back', state.lists.notFollowedBack)}${spreadsheetSheet('Mutuals', state.lists.mutuals)}</Workbook>`;
+    downloadBlob('social-trace-all-results.xls', new Blob(['\uFEFF', workbook], { type: 'application/vnd.ms-excel;charset=utf-8;' }));
   }
 
   async function analyze() {
@@ -308,7 +323,7 @@
     state.lists = { notFollowingBack: [], notFollowedBack: [], mutuals: [] };
     state.activeTab = 'notFollowingBack'; state.analyzed = false;
     resultsSection.hidden = true; accountList.replaceChildren();
-    window.scrollTo({ top: $('#instagram-tool').offsetTop - 24, behavior: 'smooth' });
+    window.scrollTo({ top: $('.analyzer-section').offsetTop - 24, behavior: 'smooth' });
   }
 
   followerInput.addEventListener('change', () => refreshFileSummary('followers'));
